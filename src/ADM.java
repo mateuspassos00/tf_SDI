@@ -165,7 +165,10 @@ public class ADM implements Restaurante {
 
             // Cliente para Mercado
             URL url = new URL("http://localhost:9876/WSMercado?wsdl");
-			QName qname = new QName("http://localhost:9876/MercadoServidorImplService");
+			QName qname = new QName(
+                "http://localhost:9876/MercadoServidorImplService",
+                "MercadoServidorImplService"
+            );
  
 			Service service = Service.create(url, qname);
             MercadoServidor serverMercado = service.getPort(MercadoServidor.class);

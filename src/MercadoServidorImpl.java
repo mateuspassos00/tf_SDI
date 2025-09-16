@@ -1,7 +1,7 @@
 import javax.jws.WebService;
 import java.util.ArrayList;
  
-@WebService(endpointInterface = "MercadoServidor", targetNamespace = "http://127.0.0.1:9876/MercadoServidorImplService/")
+@WebService(endpointInterface = "MercadoServidor")
 public class MercadoServidorImpl implements MercadoServidor {
     // private int idNextPedido = 0;
     // private ArrayList<String> pedidos = new ArrayList<String>();
