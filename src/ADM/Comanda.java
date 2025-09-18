@@ -1,3 +1,4 @@
+package ADM;
 public class Comanda {
     private float valorAcumulado;
     private int mesa;

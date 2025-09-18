@@ -1,3 +1,4 @@
+package Mercado;
 import javax.xml.ws.Endpoint;
 
 public class MercadoServidorPublisher {

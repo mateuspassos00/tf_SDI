@@ -1,8 +1,11 @@
+package Mesa;
 import java.rmi.RemoteException;
 import java.rmi.registry.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import ADM.Restaurante;
 
 public class Mesa {
 

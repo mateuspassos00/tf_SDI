@@ -1,7 +1,8 @@
+package Mercado;
 import javax.jws.WebService;
 import java.util.ArrayList;
  
-@WebService(endpointInterface = "MercadoServidor")
+@WebService(endpointInterface = "Mercado.MercadoServidor")
 public class MercadoServidorImpl implements MercadoServidor {
     // private int idNextPedido = 0;
     // private ArrayList<String> pedidos = new ArrayList<String>();

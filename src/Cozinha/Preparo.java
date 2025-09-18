@@ -1,3 +1,5 @@
+package Cozinha;
+
 public class Preparo {
     private int id;
     private int comanda;

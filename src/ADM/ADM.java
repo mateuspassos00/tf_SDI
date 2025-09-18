@@ -1,3 +1,4 @@
+package ADM;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.rmi.registry.*;
@@ -13,6 +14,10 @@ import java.nio.file.Paths;
 import java.net.URL;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
+
+import Cozinha.Cozinha;
+import Mercado.MercadoServidor;
+import Mesa.Mesa;
 
 public class ADM implements Restaurante {
     
@@ -166,7 +171,7 @@ public class ADM implements Restaurante {
             // Cliente para Mercado
             URL url = new URL("http://localhost:9876/WSMercado?wsdl");
 			QName qname = new QName(
-                "http://localhost:9876/MercadoServidorImplService",
+                "http://Mercado/",
                 "MercadoServidorImplService"
             );
  
