@@ -1,30 +1,37 @@
 package mercado;
 
 import javax.jws.WebService;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @WebService(endpointInterface = "mercado.MercadoServidor")
 public class MercadoServidorImpl implements MercadoServidor {
-    private Map<Integer, String> pedidos = new HashMap<>(); // id do pedido e do restaurante cliente
+    private List<Pedido> pedidos = new ArrayList<>();
     private int idNextPedido = 1;
 
     @Override
     public int cadastrarPedido(String restaurante) {
         int id = idNextPedido++;
-        pedidos.put(id, restaurante);
-        System.out.println("Pedido cadastrado: ID " + id + "\nRestaurante=" + restaurante);
+        Pedido p = new Pedido(id, restaurante);
+        pedidos.add(p);
+
+        System.out.println("Pedido cadastrado: ID " + id + " | Restaurante=" + restaurante);
+
         return id;
     }
 
     @Override
     public boolean comprarProdutos(int pedidoId, String[] produtos) {
-        if (!pedidos.containsKey(pedidoId)) {
+        Pedido pedido = buscarPedidoPorId(pedidoId);
+        if (pedido == null) {
             System.out.println("Pedido " + pedidoId + " não encontrado!");
             return false;
         }
-        System.out.println("Produtos comprados para pedido " + pedidoId + ":");
+
+        pedido.setProdutos(Arrays.asList(produtos));
+
+        System.out.println("Produtos adicionados ao pedido " + pedidoId + ":");
         for (String p : produtos) {
             System.out.println(" - " + p);
         }
@@ -33,15 +40,20 @@ public class MercadoServidorImpl implements MercadoServidor {
 
     @Override
     public int tempoEntrega(int pedidoId) {
-        Random rand = new Random();
-        try {
-            if (!pedidos.containsKey(pedidoId)) {
-                throw new Exception("Pedido não encontrado");
-            }
-            return rand.nextInt(60);
-        } catch (Exception e) {
-            e.printStackTrace();
+        Pedido pedido = buscarPedidoPorId(pedidoId);
+        if (pedido == null) {
+            System.out.println("Pedido " + pedidoId + " não encontrado!");
+            return -1;
         }
-        return -1;
+        return pedido.getTempoEntrega();
+    }
+
+    private Pedido buscarPedidoPorId(int id) {
+        for (Pedido p : pedidos) {
+            if (p.getId() == id) {
+                return p;
+            }
+        }
+        return null;
     }
 }

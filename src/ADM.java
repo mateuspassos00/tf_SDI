@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -22,6 +23,19 @@ public class ADM implements Restaurante {
     private Restaurante stubRestaurante;
     private Cozinha stubCozinha;
     private String[] cardapio;
+
+    // Parte 2 do trabalho
+    public static String nomeRestaurante = "Restaurante Mateus & Matheus LTDA";
+    private MercadoServidor serverMercado;
+    private int numPedidoAtual;
+
+    public int getNumPedidoAtual() {
+        return numPedidoAtual;
+    }
+
+    public void setNumPedidoAtual(int numPedidoAtual) {
+        this.numPedidoAtual = numPedidoAtual;
+    }
 
     public ADM(int qteMesas) {
         for(int i = 0; i < qteMesas; i++) {
@@ -176,6 +190,40 @@ public class ADM implements Restaurante {
 			Service service = Service.create(url, qname);
             MercadoServidor serverMercado = service.getPort(MercadoServidor.class);
             
+            Scanner scan = new Scanner(System.in);
+
+            while (true) {
+                System.out.println("\n==== MENU ADM ====");
+                System.out.println("1 - Iniciar um novo pedido no mercado");
+                System.out.println("2 - Comprar produtos");
+                System.out.println("3 - Consultar tempo de entrega de um pedido");
+                System.out.println("9 - Sair");
+                System.out.print("Escolha: ");
+
+                int op = scan.nextInt();
+                scan.nextLine();
+
+                switch (op) {
+                    case 1:
+                        server.setNumPedidoAtual(serverMercado.cadastrarPedido(nomeRestaurante));
+                        break;
+                    case 2:
+                        String pedidos[] = {"Alface", "Batata", "Cebola", "Hamburguer", "Pao", "Maionese"};
+                        int idPedido = server.getNumPedidoAtual();
+                        serverMercado.comprarProdutos(idPedido, pedidos);
+                        break;
+                    case 3:
+                        int tempoEntrega = serverMercado.tempoEntrega(server.getNumPedidoAtual());
+                        System.out.println("Tempo de entrega estimado: " + tempoEntrega + "horas");
+                        break;
+                    case 9:
+                        System.out.println("Saindo.");
+                        scan.close();
+                    default:
+                        System.out.println("Opcao invalida.");
+                }
+            }
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
