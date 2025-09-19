@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.net.URL;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
+import mercado.MercadoServidor;
 
 public class ADM implements Restaurante {
     
@@ -139,6 +140,8 @@ public class ADM implements Restaurante {
         }
         return false;
     }
+
+    // Métodos para fazer pedidos relacionados ao mercado
 
     public static void main(String[] args) {
         // Server para Mesa
