@@ -11,6 +11,18 @@ default: classes
 classes:
 	$(JAVAC) $(JFLAGS) -d out $(SOURCES)
 
+mesa:
+	$(JAVA) -cp out Mesa.Mesa
+
+adm:
+	$(JAVA) -cp out ADM.ADM
+
+cozinha:
+	$(JAVA) -cp out Cozinha.Chef
+
+mercado:
+	$(JAVA) -cp out Mercado.MercadoServidorPublisher
+
 clean:
 	rm -f out/ADM/*.class
 	rm -f out/Cozinha/*.class
