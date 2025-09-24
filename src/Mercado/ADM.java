@@ -1,4 +1,4 @@
-package ADM;
+package Mercado;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.rmi.registry.*;
@@ -16,9 +16,9 @@ import java.net.URL;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 
-import Cozinha.Cozinha;
-import Mercado.MercadoServidor;
-import Mesa.Mesa;
+// import Cozinha.Cozinha;
+// import Mercado_old.MercadoServidor;
+// import Mesa.Mesa;
 
 public class ADM implements Restaurante {
     
@@ -178,16 +178,16 @@ public class ADM implements Restaurante {
 
             // Cliente para Chef
             String host = (args.length < 1) ? null : args[0];            
-            Registry registryClient = LocateRegistry.getRegistry(host,6603);
+            Registry registryClient = LocateRegistry.getRegistry(host,1098);
         
-            Cozinha stubCozinha = (Cozinha) registryClient.lookup("Preparo");
+            Cozinha stubCozinha = (Cozinha) registryClient.lookup("Cozinha");
             server.setStubCozinha(stubCozinha);
 
             // Cliente para Mercado
-            URL url = new URL("http://localhost:9876/WSMercado?wsdl");
+            URL url = new URL("http://localhost:9877/mercado?wsdl");
 			QName qname = new QName(
                 "http://Mercado/",
-                "MercadoServidorImplService"
+                "MercadoService"
             );
  
 			Service service = Service.create(url, qname);

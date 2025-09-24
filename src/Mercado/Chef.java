@@ -1,4 +1,4 @@
-package Cozinha;
+package Mercado;
 
 import java.rmi.*;
 import java.rmi.server.*;

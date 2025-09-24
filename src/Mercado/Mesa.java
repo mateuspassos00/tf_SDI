@@ -1,11 +1,11 @@
-package Mesa;
+package Mercado;
 import java.rmi.RemoteException;
 import java.rmi.registry.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import ADM.Restaurante;
+// import ADM.Restaurante;
 
 public class Mesa {
 
@@ -36,7 +36,7 @@ public class Mesa {
             Registry registry = LocateRegistry.getRegistry(host,port);
 
             // Obtém a stub do servidor
-            Restaurante stubR = (Restaurante) registry.lookup("Atendimento");
+            Restaurante stubR = (Restaurante) registry.lookup("Restaurante");
             this.setStub(stubR);
 
         } catch (Exception ex) {
@@ -172,7 +172,7 @@ public class Mesa {
         Mesa mesa = new Mesa();
         mesa.setNum(numMesa);
 
-        mesa.initRegistry(host, 6602);
+        mesa.initRegistry(host, 1097);
         System.out.println(mesa.getStub());
         
         try {
