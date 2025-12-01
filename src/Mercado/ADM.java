@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 
 // import Cozinha.Cozinha;
-// import Mercado_old.MercadoServidor;
+// import Mercado.MercadoServidor;
 // import Mesa.Mesa;
 
 public class ADM implements Restaurante {
