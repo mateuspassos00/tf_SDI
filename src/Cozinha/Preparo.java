@@ -1,4 +1,4 @@
-package Mercado;
+package Cozinha;
 
 public class Preparo {
     private int id;

@@ -19,8 +19,9 @@ public class CadastrarHandler implements HttpHandler {
             exchange.close();
             return;
         }
+        
+        String restaurante = HttpUtils.readRequestBody(exchange.getRequestBody());
 
-        String restaurante = new String(exchange.getRequestBody().readAllBytes());
 
         // ✅ HERE is where Paxos will be called in the future
         int pedidoId = state.cadastrarPedido(restaurante);

@@ -4,13 +4,14 @@ JAVA=/usr/local/jdk1.8.0_131/bin/java
 JAVAC=/usr/local/jdk1.8.0_131/bin/javac
 
 JFLAGS = -g
+SOURCES_FILIAL = src/Filial/*.java
 # SOURCES = src/ADM/*.java src/Cozinha/*.java src/Mercado/*.java src/Mesa/*.java
 SOURCES = src/Mercado/*.java src/Filial/*.java
 
 default: classes
 
 classes:
-	$(JAVAC) $(JFLAGS) -d out $(SOURCES)
+	$(JAVAC) $(JFLAGS) -d out $(SOURCES_FILIAL)
 
 mesa:
 # 	$(JAVA) -cp out Mesa.Mesa

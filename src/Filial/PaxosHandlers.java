@@ -2,7 +2,7 @@ package Filial;
 
 import com.sun.net.httpserver.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+// import java.nio.charset.StandardCharsets;
 
 public class PaxosHandlers {
 
@@ -13,8 +13,9 @@ public class PaxosHandlers {
         // Request body: <proposalId>
         // Response: "OK" (promise w/o prior accepted), "ACCEPTED:<acceptedId>:<acceptedValue>", or "REJECT"
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String proposalId = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        public void handle(HttpExchange exchange) throws IOException {            
+            String proposalId = HttpUtils.readRequestBody(exchange.getRequestBody());
+
             PaxosResponse resp = state.handlePrepare(proposalId);
             String body;
             if (resp.status == PaxosResponse.Status.OK) {
@@ -37,8 +38,8 @@ public class PaxosHandlers {
         // Request body: <proposalId>|<value>
         // Response: "ACCEPTED" or "REJECT"
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        public void handle(HttpExchange exchange) throws IOException {            
+            String body = HttpUtils.readRequestBody(exchange.getRequestBody());
             String[] parts = body.split("\\|", 2);
             String proposalId = parts[0];
             String value = parts.length > 1 ? parts[1] : "";
@@ -57,8 +58,8 @@ public class PaxosHandlers {
         // Request body: <value>  (the command to apply)
         // Response: "OK" if applied
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String value = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        public void handle(HttpExchange exchange) throws IOException {            
+            String value = HttpUtils.readRequestBody(exchange.getRequestBody());
             state.handleCommit(value);
             String resp = "OK";
             exchange.sendResponseHeaders(200, resp.getBytes().length);

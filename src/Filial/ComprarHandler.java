@@ -21,8 +21,9 @@ public class ComprarHandler implements HttpHandler {
             return;
         }
 
-        // inside handle method of ComprarHandler (when leader)
-        String body = new String(exchange.getRequestBody().readAllBytes());
+        // inside handle method of ComprarHandler (when leader)        
+        String body = HttpUtils.readRequestBody(exchange.getRequestBody());
+
         String[] parts = body.split(";");
         int pedidoId = Integer.parseInt(parts[0]);
         List<String> produtos = Arrays.asList(parts[1].split(","));

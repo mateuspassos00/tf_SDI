@@ -1,4 +1,4 @@
-package Mercado;
+package Mesa;
 public class Comanda {
     private float valorAcumulado;
     private int mesa;
