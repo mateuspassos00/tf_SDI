@@ -5,7 +5,7 @@ JAVAC=/usr/local/jdk1.8.0_131/bin/javac
 
 JFLAGS = -g
 # SOURCES = src/ADM/*.java src/Cozinha/*.java src/Mercado/*.java src/Mesa/*.java
-SOURCES = src/Mercado/*.java
+SOURCES = src/Mercado/*.java src/Filial/*.java
 
 default: classes
 
@@ -28,8 +28,12 @@ mercado:
 # 	$(JAVA) -cp out Mercado.MercadoServidorPublisher
 	$(JAVA) -cp out Mercado.MercadoServidorPublisher
 
+filial:
+	$(JAVA) -cp out Filial.FilialServer
+
 clean:
 	rm -f out/ADM/*.class
 	rm -f out/Cozinha/*.class
 	rm -f out/Mercado/*.class
 	rm -f out/Mesa/*.class
+	rm -f out/Filial/*.class

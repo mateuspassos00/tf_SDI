@@ -21,14 +21,24 @@ public class ComprarHandler implements HttpHandler {
             return;
         }
 
+        // inside handle method of ComprarHandler (when leader)
         String body = new String(exchange.getRequestBody().readAllBytes());
         String[] parts = body.split(";");
-
         int pedidoId = Integer.parseInt(parts[0]);
         List<String> produtos = Arrays.asList(parts[1].split(","));
 
-        // ✅ HERE is where Paxos COMMIT will go
-        boolean ok = state.comprar(pedidoId, produtos);
+        String command = "COMPRAR:" + pedidoId + ":" + String.join(",", produtos);
+
+        // run Paxos commit
+        boolean paxosOk = state.proposeAndCommit(command);
+        boolean ok = false;
+        if (paxosOk) {
+            // state.handleCommit has already applied it on the leader because the commit RPC also calls handleCommit on leader
+            // but to be safe, ensure local state also applied (leader's commit handler may have applied it already)
+            ok = state.tempoEntrega(pedidoId) >= 0; // or check pedido existence
+        } else {
+            ok = false;
+        }
 
         byte[] response = String.valueOf(ok).getBytes();
         exchange.sendResponseHeaders(200, response.length);

@@ -1,8 +1,10 @@
 package Mercado;
+
 import javax.jws.WebService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import Filial.FilialClient;
  
 @WebService(endpointInterface = "Mercado.MercadoServidor")
 public class MercadoServidorImpl implements MercadoServidor {
@@ -11,19 +13,36 @@ public class MercadoServidorImpl implements MercadoServidor {
 
     @Override
     public int cadastrarPedido(String restaurante) {
-        FilialClient filial = leaderLocator.getLeaderClient();
-        return filial.cadastrarPedido(restaurante);
+        return withFailover(client -> client.cadastrarPedido(restaurante));
     }
 
     @Override
     public boolean comprarProdutos(int pedidoId, String[] produtos) {
-        FilialClient filial = leaderLocator.getLeaderClient();
-        return filial.comprarProdutos(pedidoId, produtos);
+        return withFailover(client -> client.comprarProdutos(pedidoId, produtos));
     }
 
     @Override
     public int tempoEntrega(int pedidoId) {
-        FilialClient filial = leaderLocator.getLeaderClient();
-        return filial.tempoEntrega(pedidoId);
+        return withFailover(client -> client.tempoEntrega(pedidoId));
+    }
+
+    // ✅ Generic Failover Wrapper
+    private <T> T withFailover(FilialOperation<T> op) {
+        try {
+            FilialClient leader = leaderLocator.getLeaderClient();
+            return op.execute(leader);
+        } catch (Exception e) {
+            System.out.println("⚠️ Leader failed, retrying with new leader...");
+            leaderLocator.invalidateLeader();
+
+            FilialClient newLeader = leaderLocator.getLeaderClient();
+            return op.execute(newLeader);
+        }
+    }
+
+    // ✅ Functional interface for retry logic
+    private interface FilialOperation<T> {
+        T execute(FilialClient client);
     }
 }
+

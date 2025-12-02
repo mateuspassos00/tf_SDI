@@ -1,21 +1,64 @@
 package Mercado;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import Filial.FilialClient;
 
 public class LeaderLocator {
 
-    private List<String> filialUrls = Arrays.asList(
-        "http://localhost:9001",
-        "http://localhost:9002",
-        "http://localhost:9003"
+    // ✅ List of all Filiais in the system
+    private final List<String> filiais = Arrays.asList(
+            "http://localhost:9001",
+            "http://localhost:9002",
+            "http://localhost:9003",
+            "http://localhost:9004",
+            "http://localhost:9005"
     );
 
-    public FilialClient getLeaderClient() {
-        for (String url : filialUrls) {
-            boolean isLeader = Http.get(url + "/isLeader", boolean.class);
-            if (isLeader) return new FilialClient(url);
+    private FilialClient cachedLeader = null;
+    private long lastCheckTime = 0;
+
+    // how often we re-check leader health (ms)
+    private static final long CHECK_INTERVAL = 3000;
+
+    // ===============================
+    // ✅ Main public method
+    // ===============================
+    public synchronized FilialClient getLeaderClient() {
+
+        long now = System.currentTimeMillis();
+
+        // ✅ If cached leader is fresh, reuse it
+        if (cachedLeader != null && (now - lastCheckTime) < CHECK_INTERVAL) {
+            return cachedLeader;
         }
-        throw new RuntimeException("No leader found!");
+
+        System.out.println("🔍 Searching for leader among filiais...");
+
+        // ✅ Look for the leader
+        for (String url : filiais) {
+            try {
+                FilialClient client = new FilialClient(url);
+                if (client.isLeader()) {
+                    cachedLeader = client;
+                    lastCheckTime = now;
+                    System.out.println("✅ Leader found at " + url);
+                    return client;
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ Filial offline: " + url);
+            }
+        }
+
+        // ✅ If we reach here → no leader exists
+        cachedLeader = null;
+        throw new RuntimeException("❌ No leader available in the system!");
+    }
+
+    // ===============================
+    // ✅ Force refresh (used on errors)
+    // ===============================
+    public synchronized void invalidateLeader() {
+        cachedLeader = null;
+        lastCheckTime = 0;
     }
 }
