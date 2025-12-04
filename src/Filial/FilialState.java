@@ -19,11 +19,12 @@ public class FilialState {
     private final Map<String, Integer> stock = new ConcurrentHashMap<>();
 
     // orderId -> list of reserved products
-    private final Map<Integer, List<String>> reservations = new ConcurrentHashMap<>();
-
-    // application state
+    private final Map<Integer, List<String>> reservations = new ConcurrentHashMap<>();    
     private Map<Integer, Pedido> pedidos = new HashMap<>();
-    private AtomicInteger nextPedidoId = new AtomicInteger(1);
+    private AtomicInteger nextPedidoId = new AtomicInteger(1);    
+    
+    // orderId -> (product -> filialURL)
+    private final Map<Integer, Map<String, String>> finalPlans = new HashMap<>();
 
     // ==============================
     // ✅ CONSTRUCTOR
@@ -124,6 +125,14 @@ public class FilialState {
         return p.getTempoEntrega();
     }
 
+    public synchronized void storeFinalPlan(int orderId, Map<String, String> plan) {
+        finalPlans.put(orderId, plan);
+    }
+
+    public synchronized Map<String, String> getFinalPlan(int orderId) {
+        return finalPlans.get(orderId);
+    }
+
     public synchronized String getLeader() { return currentLeader; }
 
     // ============================================================
@@ -132,13 +141,4 @@ public class FilialState {
     public synchronized Map<String, Integer> getStockSnapshot() {
         return new HashMap<>(stock);
     }
-
-//     public synchronized boolean comprarLocal(int pedidoId, List<String> produtos) {
-//         Pedido p = pedidos.get(pedidoId);
-//         if (p == null) return false;
-//         p.setProdutos(produtos);
-//         System.out.println("Pedido " + pedidoId + " updated with products on " + myUrl);
-//         return true;
-//     }
-
 }

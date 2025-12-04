@@ -12,11 +12,15 @@ import java.io.IOException;
  */
 public class LeaderPurchaseCoordinator {
 
-    private final List<FilialInfo> filiais; // deterministic order (used to break ties)
-
-    public LeaderPurchaseCoordinator(List<FilialInfo> filiais) {
-        this.filiais = new ArrayList<>(filiais);
-    }
+    private final List<FilialInfo> filiais = Arrays.asList(
+        new FilialInfo("F1", "http://localhost:9001"),
+        new FilialInfo("F2", "http://localhost:9002"),
+        new FilialInfo("F3", "http://localhost:9003"),
+        new FilialInfo("F4", "http://localhost:9004"),
+        new FilialInfo("F5", "http://localhost:9005")
+    ); // deterministic order (used to break ties)
+    
+    public LeaderPurchaseCoordinator() {}
 
     /**
      * Attempts to fulfill the requested products for orderId.
@@ -87,7 +91,27 @@ public class LeaderPurchaseCoordinator {
             }
         }
 
-        // success: all confirmed
+        // success: all confirmed.. time to replicate the log
+        FinalPlanRequest finalReq = new FinalPlanRequest();
+        finalReq.orderId = orderId;
+
+        Map<String, String> flatPlan = new HashMap<>();
+        for (Map.Entry<String, FilialInfo> e : plan.entrySet()) {
+            flatPlan.put(e.getKey(), e.getValue().id);
+        }
+        finalReq.plan = flatPlan;
+
+        // Broadcast to all filiais (including non-sellers)
+        for (FilialInfo f : filiais) {
+            FilialHttpClient client = new FilialHttpClient(f);
+            try {
+                client.replicateFinalPlan(finalReq);
+            } catch (IOException ex) {
+                System.out.println("[Leader] replication failed for " + f +
+                        " -> " + ex.getMessage());
+            }
+        }
+        
         System.out.println("[Leader] purchase successful for order " + orderId + " plan=" + plan);
         return plan;
     }

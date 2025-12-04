@@ -17,7 +17,7 @@ public class Pedido {
         this.id = id;
         this.restaurante = restaurante;
         Random rand = new Random();
-        this.tempoEntrega = rand.nextInt(60);
+        this.tempoEntrega = rand.nextInt(60); // gerado aleatoriamente ao criar pedido
     }
 
     public void registrarAquisicao(String produto, String filial) {

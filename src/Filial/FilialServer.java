@@ -15,15 +15,15 @@ public class FilialServer {
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        server.createContext("/cadastrar", new CadastrarHandler(state));
-        server.createContext("/comprar", new ComprarHandler(state));
-        server.createContext("/entrega", new EntregaHandler(state));
-        server.createContext("/isLeader", new IsLeaderHandler(state));
+        server.createContext("/cadastrar", new CadastrarHandler(state)); // ok
+        server.createContext("/comprar", new ComprarHandler()); // ok
+        server.createContext("/entrega", new EntregaHandler(state)); // ok
+        server.createContext("/isLeader", new IsLeaderHandler(state)); // ok
         server.createContext("/setLeader", new SetLeaderHandler(state));
-        server.createContext("/ofertar", new OfertarHandler(state));
-        server.createContext("/confirmarVenda", new ConfirmarVendaHandler(state));
-        server.createContext("/cancelarReserva", new CancelarReservaHandler(state));
-
+        server.createContext("/ofertar", new OfertarHandler(state)); // ok
+        server.createContext("/confirmarVenda", new ConfirmarVendaHandler(state)); // ok
+        server.createContext("/cancelarReserva", new CancelarReservaHandler(state)); // ok
+        server.createContext("/replicarPlano", new ReplicarPlanoHandler(state)); // ok
 
         server.setExecutor(null);
         server.start();

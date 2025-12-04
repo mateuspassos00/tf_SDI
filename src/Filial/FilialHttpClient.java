@@ -79,4 +79,26 @@ public class FilialHttpClient {
             throw new IOException("cancelarReserva returned " + code + " from " + filial);
         }
     }
+
+    public void replicateFinalPlan(FinalPlanRequest request) throws IOException {
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(request);
+
+        URL url = new URL(filial.baseUrl + "/replicarPlano");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(json.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int status = conn.getResponseCode();
+        if (status != 200) {
+            throw new IOException("Replication failed: HTTP " + status);
+        }
+    }
+
 }
