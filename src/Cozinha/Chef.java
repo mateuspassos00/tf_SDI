@@ -62,7 +62,7 @@ public class Chef implements Cozinha {
             int port = 6603;
             Registry registry = LocateRegistry.createRegistry(port);
 
-            registry.bind("Preparo", stub);
+            registry.bind("Cozinha", stub);
             System.out.println("Servidor rodando na porta " + port + "\n" + stub );
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import ADM.Restaurante;
+
 // import ADM.Restaurante;
 
 public class Mesa {

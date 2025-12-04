@@ -4,33 +4,44 @@ JAVA=/usr/local/jdk1.8.0_131/bin/java
 JAVAC=/usr/local/jdk1.8.0_131/bin/javac
 
 JFLAGS = -g
-SOURCES_FILIAL = src/Filial/*.java
-# SOURCES = src/ADM/*.java src/Cozinha/*.java src/Mercado/*.java src/Mesa/*.java
-SOURCES = src/Mercado/*.java src/Filial/*.java
+SOURCES = src/ADM/*.java src/Cozinha/*.java src/Mercado/*.java src/Mesa/*.java src/Filial/*.java
+#SOURCES = src/Mercado/*.java src/Filial/*.java
+FILIAL_CP = out:lib/*
 
 default: classes
 
 classes:
-	$(JAVAC) $(JFLAGS) -d out $(SOURCES_FILIAL)
+	$(JAVAC) $(JFLAGS) -cp "lib/*" -d out $(SOURCES)
 
 mesa:
-# 	$(JAVA) -cp out Mesa.Mesa
-	$(JAVA) -cp out Mercado.Mesa
+	$(JAVA) -cp out Mesa.Mesa
+# 	$(JAVA) -cp out Mercado.Mesa
 
 adm:
-# 	$(JAVA) -cp out ADM.ADM
-	$(JAVA) -cp out Mercado.ADM
+	$(JAVA) -cp out ADM.ADM
+# 	$(JAVA) -cp out Mercado.ADM
 
 cozinha:
-# 	$(JAVA) -cp out Cozinha.Chef
-	$(JAVA) -cp out Mercado.Chef
+	$(JAVA) -cp out Cozinha.Chef
+# 	$(JAVA) -cp out Mercado.Chef
 
 mercado:
-# 	$(JAVA) -cp out Mercado.MercadoServidorPublisher
 	$(JAVA) -cp out Mercado.MercadoServidorPublisher
 
-filial:
-	$(JAVA) -cp out Filial.FilialServer
+filial1:
+	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9001
+
+filial2:
+	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9002
+
+filial3:
+	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9003
+
+filial4:
+	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9004
+
+filial5:
+	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9005
 
 clean:
 	rm -f out/ADM/*.class

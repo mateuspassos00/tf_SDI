@@ -20,7 +20,6 @@ import Mercado.MercadoServidor;
 import Cozinha.Cozinha;
 import Mesa.Comanda;
 import Mesa.Mesa;
-import Mesa.Restaurante;
 
 public class ADM implements Restaurante {
     
@@ -174,22 +173,22 @@ public class ADM implements Restaurante {
             // Registra a stub no RMI Registry para que ela seja obtida pelos clientes
             Registry registryServer = LocateRegistry.createRegistry(port);
 
-            registryServer.bind("Atendimento", stubRestaurante);
+            registryServer.bind("Restaurante", stubRestaurante);
             System.out.println("Servidor rodando na porta " + port + "\n" + stubRestaurante );
             server.setStubRestaurante(stubRestaurante);
 
             // Cliente para Chef
             String host = (args.length < 1) ? null : args[0];            
-            Registry registryClient = LocateRegistry.getRegistry(host,1098);
+            Registry registryClient = LocateRegistry.getRegistry(host,6603);
         
             Cozinha stubCozinha = (Cozinha) registryClient.lookup("Cozinha");
             server.setStubCozinha(stubCozinha);
 
             // Cliente para Mercado
-            URL url = new URL("http://localhost:9876/mercado?wsdl");
+            URL url = new URL("http://localhost:9876/WSMercado?wsdl");
 			QName qname = new QName(
                 "http://Mercado/",
-                "MercadoService"
+                "MercadoServidorImplService"
             );
  
 			Service service = Service.create(url, qname);
