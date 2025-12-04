@@ -33,6 +33,10 @@ public class FilialState {
         this.filialUrl = filialUrl;
         loadStockFromCSV(csvPath);
         this.myPort = myPort;
+        if(myPort == 9005) {
+            this.isLeader = true;
+            this.leaderUrl = filialUrl;
+        }
     }
 
     // ==============================
