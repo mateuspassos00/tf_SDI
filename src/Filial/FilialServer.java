@@ -29,6 +29,7 @@ public class FilialServer {
 
         server.setExecutor(null);
         server.start();
+
         new LeaderMonitor(state).start();
 
         System.out.println("✅ Filial running on port " + port);

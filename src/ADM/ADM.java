@@ -212,7 +212,7 @@ public class ADM implements Restaurante {
                         server.setNumPedidoAtual(serverMercado.cadastrarPedido(nomeRestaurante));
                         break;
                     case 2:
-                        String pedidos[] = {"Alface", "Batata", "Cebola", "Hamburguer", "Pao", "Maionese"};
+                        String pedidos[] = {"Arroz", "Feijão", "Cerveja", "Leite"};
                         int idPedido = server.getNumPedidoAtual();
                         serverMercado.comprarProdutos(idPedido, pedidos);
                         break;

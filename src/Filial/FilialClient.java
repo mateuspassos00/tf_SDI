@@ -6,11 +6,13 @@ import java.nio.charset.StandardCharsets;
 
 public class FilialClient {
 
-    private final String baseUrl; // Example: http://localhost:9001
+    private final String baseUrl; // Example: http://localhost:9001    
 
     public FilialClient(String baseUrl) {
         this.baseUrl = baseUrl;
     }
+
+    public String getBaseUrl() { return baseUrl; }
 
     // ============================
     // POST /cadastrar

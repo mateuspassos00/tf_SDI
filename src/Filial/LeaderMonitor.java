@@ -1,5 +1,7 @@
 package Filial;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
@@ -23,20 +25,37 @@ public class LeaderMonitor extends Thread {
 
     @Override
     public void run() {
-        while (true) {
-            try {
-                Thread.sleep(2000);
+    try {
+        Thread.sleep(1000); // give time for all servers to boot
+    } catch (InterruptedException ignored) {}
 
-                if (state.isLeader()) continue;
+    // ✅ BOOTSTRAP ELECTION
+    if (state.getLeaderUrl() == null) {
+        System.out.println("⚡ No leader at startup, starting election...");
+        startElection();
+    }
 
-                if (!pingLeader()) {
+    // ✅ NORMAL OPERATION
+    while (true) {
+        try {
+            Thread.sleep(2000);
+
+            if (state.isLeader()) continue;
+
+            if (!pingLeader()) {
+                String possibleLeader = discoverLeader();
+                if(possibleLeader != null) {
+                    state.setLeader(possibleLeader);                    
+                } else {
                     System.out.println("⚠️ Leader down! Starting election...");
                     startElection();
-                }
+                }                                
+            }
 
-            } catch (Exception ignored) {}
-        }
+        } catch (Exception ignored) {}
     }
+}
+
 
     private boolean pingLeader() {
         try {
@@ -77,6 +96,35 @@ public class LeaderMonitor extends Thread {
         }
     }
 
+    private String discoverLeader() {
+        for (String f : filiais) {
+            try {
+                URL url = new URL(f + "/isLeader");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(800);
+                conn.setReadTimeout(800);
+                conn.setRequestMethod("GET");
+
+                if (conn.getResponseCode() == 200) {
+                    BufferedReader br = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream())
+                    );
+                    String response = br.readLine();
+
+                    if ("true".equalsIgnoreCase(response)) {
+                        System.out.println("✅ Leader found at: " + f);
+                        return f;
+                    }
+                }
+
+            } catch (Exception ignored) {
+                // Filial offline or unreachable
+            }
+        }
+
+        return null; // no leader found
+    }
+    
     private void becomeLeader() {
         System.out.println("👑 I AM THE NEW LEADER: " + state.getFilialUrl());
         state.setLeader(state.getFilialUrl());

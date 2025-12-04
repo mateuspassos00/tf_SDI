@@ -6,7 +6,7 @@ JAVAC=/usr/local/jdk1.8.0_131/bin/javac
 JFLAGS = -g
 SOURCES = src/ADM/*.java src/Cozinha/*.java src/Mercado/*.java src/Mesa/*.java src/Filial/*.java
 #SOURCES = src/Mercado/*.java src/Filial/*.java
-FILIAL_CP = out:lib/*
+LIB_CP = out:lib/*
 
 default: classes
 
@@ -26,22 +26,22 @@ cozinha:
 # 	$(JAVA) -cp out Mercado.Chef
 
 mercado:
-	$(JAVA) -cp out Mercado.MercadoServidorPublisher
+	$(JAVA) -cp $(LIB_CP) Mercado.MercadoServidorPublisher
 
 filial1:
-	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9001
+	$(JAVA) -cp $(LIB_CP) Filial.FilialServer 9001
 
 filial2:
-	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9002
+	$(JAVA) -cp $(LIB_CP) Filial.FilialServer 9002
 
 filial3:
-	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9003
+	$(JAVA) -cp $(LIB_CP) Filial.FilialServer 9003
 
 filial4:
-	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9004
+	$(JAVA) -cp $(LIB_CP) Filial.FilialServer 9004
 
 filial5:
-	$(JAVA) -cp $(FILIAL_CP) Filial.FilialServer 9005
+	$(JAVA) -cp $(LIB_CP) Filial.FilialServer 9005
 
 clean:
 	rm -f out/ADM/*.class
