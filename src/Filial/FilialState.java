@@ -1,58 +1,121 @@
 package Filial;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class FilialState {
 
-    // Basic node identity
-    private final String myUrl;
+    // Filial identity
+    private final String filialUrl;
     private boolean isLeader = false;
     private String currentLeader = null;
+
+
+    // Product -> Quantity
+    private final Map<String, Integer> stock = new ConcurrentHashMap<>();
+
+    // orderId -> list of reserved products
+    private final Map<Integer, List<String>> reservations = new ConcurrentHashMap<>();
 
     // application state
     private Map<Integer, Pedido> pedidos = new HashMap<>();
     private AtomicInteger nextPedidoId = new AtomicInteger(1);
 
-    // Paxos acceptor persistent state (in-memory for assignment)
-    private String promisedProposalId = null;   // highest promised proposal id
-    private String acceptedProposalId = null;   // highest accepted proposal id
-    private String acceptedValue = null;        // value accepted with acceptedProposalId
-
-    // peers (all filiais URLs, including self is okay)
-    private final List<String> peers;
-
-    public FilialState(String myUrl, List<String> peers) {
-        this.myUrl = myUrl;
-        this.peers = new ArrayList<>(peers);
+    // ==============================
+    // ✅ CONSTRUCTOR
+    // ==============================
+    public FilialState(String filialUrl, String csvPath) throws IOException {
+        this.filialUrl = filialUrl;
+        loadStockFromCSV(csvPath);
     }
 
-    public String getMyUrl() { return myUrl; }
+    // ==============================
+    // ✅ LOAD STOCK FROM CSV
+    // Format:
+    // Rice,10
+    // Beans,5
+    // ==============================
+    private void loadStockFromCSV(String csvPath) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(csvPath));
+        String line;
+
+        while ((line = br.readLine()) != null) {
+            String[] parts = line.split(",");
+            String product = parts[0].trim();
+            int qty = Integer.parseInt(parts[1].trim());
+            stock.put(product, qty);
+        }
+
+        br.close();
+
+        System.out.println("📦 Stock loaded for " + filialUrl + ": " + stock);
+    }
+
+    public synchronized int cadastrarPedido(String restaurante) {
+        int id = nextPedidoId.getAndIncrement();
+        pedidos.put(id, new Pedido(id, restaurante));
+        System.out.println("Pedido created id=" + id + " by " + filialUrl);
+        return id;
+    }
+
+    // ============================================================
+    // ✅ REQUIRED METHODS USED BY YOUR HTTP HANDLERS
+    // ============================================================
+
+    // 🔹 1. Used by /ofertar
+    public synchronized boolean hasStock(String product) {
+        return stock.getOrDefault(product, 0) > 0;
+    }
+
+    // 🔹 2. Used by /confirmarVenda
+    public synchronized boolean removeFromStock(String product, int orderId) {
+
+        int qty = stock.getOrDefault(product, 0);
+
+        if (qty <= 0) {
+            return false;
+        }
+
+        // Decrement stock
+        stock.put(product, qty - 1);
+
+        // Track reservation for possible rollback
+        reservations
+            .computeIfAbsent(orderId, k -> new ArrayList<>())
+            .add(product);
+
+        return true;
+    }
+
+    // 🔹 3. Used by /cancelarReserva
+    public synchronized void returnToStock(String product, int orderId) {
+
+        List<String> products = reservations.get(orderId);
+
+        if (products != null && products.remove(product)) {
+            stock.put(product, stock.getOrDefault(product, 0) + 1);
+
+            if (products.isEmpty()) {
+                reservations.remove(orderId);
+            }
+        }
+    }
+
+    // 🔹 4. Used by /ofertar response
+    public String getFilialUrl() {
+        return filialUrl;
+    }
 
     // ===== leader control =====
     public synchronized boolean isLeader() { return isLeader; }
     public synchronized void setLeader(String leaderUrl) {
         this.currentLeader = leaderUrl;
-        this.isLeader = leaderUrl != null && leaderUrl.equals(myUrl);
-        System.out.println("👑 leader set to " + leaderUrl + " (this=" + myUrl + ")");
-    }
-
-    public synchronized String getLeader() { return currentLeader; }
-
-    // ===== pedido logic (applied only after commit) =====
-    public synchronized int cadastrarPedido(String restaurante) {
-        int id = nextPedidoId.getAndIncrement();
-        pedidos.put(id, new Pedido(id, restaurante));
-        System.out.println("Pedido created locally id=" + id + " by " + myUrl);
-        return id;
-    }
-
-    public synchronized boolean comprarLocal(int pedidoId, List<String> produtos) {
-        Pedido p = pedidos.get(pedidoId);
-        if (p == null) return false;
-        p.setProdutos(produtos);
-        System.out.println("Pedido " + pedidoId + " updated with products on " + myUrl);
-        return true;
+        this.isLeader = leaderUrl != null && leaderUrl.equals(filialUrl);
+        System.out.println("👑 leader set to " + leaderUrl + " (this=" + filialUrl + ")");
     }
 
     public synchronized int tempoEntrega(int pedidoId) {
@@ -61,82 +124,21 @@ public class FilialState {
         return p.getTempoEntrega();
     }
 
-    // ===== Paxos acceptor handlers called by HTTP endpoints =====
+    public synchronized String getLeader() { return currentLeader; }
 
-    // Prepare: if proposalId >= promisedProposalId -> promise and return any accepted value
-    // returns PaxosResponse
-    public synchronized PaxosResponse handlePrepare(String proposalId) {
-        // If we have already promised to a higher proposal, reject
-        if (promisedProposalId != null && compareProposal(promisedProposalId, proposalId) > 0) {
-            return new PaxosResponse(PaxosResponse.Status.REJECT, null, null);
-        }
-
-        // Otherwise promise not to accept lower proposals
-        promisedProposalId = proposalId;
-
-        if (acceptedProposalId != null) {
-            // inform proposer of previously accepted proposal/value
-            return new PaxosResponse(PaxosResponse.Status.ACCEPTED, acceptedProposalId, acceptedValue);
-        } else {
-            return new PaxosResponse(PaxosResponse.Status.OK, null, null);
-        }
+    // ============================================================
+    // ✅ OPTIONAL DEBUG METHOD
+    // ============================================================
+    public synchronized Map<String, Integer> getStockSnapshot() {
+        return new HashMap<>(stock);
     }
 
-    // Accept: accept proposal if proposalId >= promisedProposalId
-    public synchronized boolean handleAccept(String proposalId, String value) {
-        if (promisedProposalId != null && compareProposal(promisedProposalId, proposalId) > 0) {
-            return false; // reject
-        }
-        // accept
-        promisedProposalId = proposalId;
-        acceptedProposalId = proposalId;
-        acceptedValue = value;
-        System.out.println("▶ Accepted proposal " + proposalId + " value=" + value + " on " + myUrl);
-        return true;
-    }
+//     public synchronized boolean comprarLocal(int pedidoId, List<String> produtos) {
+//         Pedido p = pedidos.get(pedidoId);
+//         if (p == null) return false;
+//         p.setProdutos(produtos);
+//         System.out.println("Pedido " + pedidoId + " updated with products on " + myUrl);
+//         return true;
+//     }
 
-    // Commit: apply the value (value is a command string we define)
-    public synchronized void handleCommit(String value) {
-        // For simplicity, we expect a command string of the form:
-        // "COMPRAR:<pedidoId>:p1,p2,p3" or "CADASTRAR:<restaurante>"
-        if (value == null || value.trim().isEmpty()) return;
-        System.out.println("⤵ Applying committed value on " + myUrl + " : " + value);
-        applyCommand(value);
-    }
-
-    // Helper: decode and apply the command string to local state
-    private void applyCommand(String command) {
-        if (command.startsWith("CADASTRAR:")) {
-            String restaurante = command.substring("CADASTRAR:".length());
-            // create same id? For simplicity we create locally - IDs will diverge unless you make ID assignment part of Paxos
-            cadastrarPedido(restaurante);
-        } else if (command.startsWith("COMPRAR:")) {
-            // Format: COMPRAR:<pedidoId>:p1,p2
-            String rest = command.substring("COMPRAR:".length());
-            String[] parts = rest.split(":", 2);
-            int pedidoId = Integer.parseInt(parts[0]);
-            List<String> produtos = parts.length > 1 && !parts[1].isEmpty()
-                    ? Arrays.asList(parts[1].split(","))
-                    : Collections.emptyList();
-            comprarLocal(pedidoId, produtos);
-        } else {
-            System.out.println("Unknown command: " + command);
-        }
-    }
-
-    // Simple lexicographic compare of proposal id strings that start with timestamp
-    private int compareProposal(String a, String b) {
-        if (a == null && b == null) return 0;
-        if (a == null) return -1;
-        if (b == null) return 1;
-        return a.compareTo(b);
-    }
-
-    // ===== Proposer integration (leader uses this) =====
-
-    // The leader uses this to propose a command (string) and commit it via PaxosProposer
-    public boolean proposeAndCommit(String command) {
-        PaxosProposer proposer = new PaxosProposer(this, peers);
-        return proposer.proposeAndCommit(command);
-    }
 }

@@ -1,12 +1,15 @@
 package Filial;
 
-import com.sun.net.httpserver.*;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import java.io.*;
-import java.util.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class ComprarHandler implements HttpHandler {
 
-    private FilialState state;
+    private final FilialState state;
 
     public ComprarHandler(FilialState state) {
         this.state = state;
@@ -15,35 +18,61 @@ public class ComprarHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
 
-        if (!state.isLeader()) {
-            exchange.sendResponseHeaders(403, 0);
-            exchange.close();
+        if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+            exchange.sendResponseHeaders(405, -1);
             return;
         }
 
-        // inside handle method of ComprarHandler (when leader)        
-        String body = HttpUtils.readRequestBody(exchange.getRequestBody());
+        // =============================
+        // ✅ Read request body (Java 8)
+        // =============================
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8)
+        );
+
+        String body = br.readLine();  
+        // Format: pedidoId;produto1,produto2,...
 
         String[] parts = body.split(";");
         int pedidoId = Integer.parseInt(parts[0]);
-        List<String> produtos = Arrays.asList(parts[1].split(","));
+        String[] produtos = parts[1].split(",");
 
-        String command = "COMPRAR:" + pedidoId + ":" + String.join(",", produtos);
+        boolean sucesso;
 
-        // run Paxos commit
-        boolean paxosOk = state.proposeAndCommit(command);
-        boolean ok = false;
-        if (paxosOk) {
-            // state.handleCommit has already applied it on the leader because the commit RPC also calls handleCommit on leader
-            // but to be safe, ensure local state also applied (leader's commit handler may have applied it already)
-            ok = state.tempoEntrega(pedidoId) >= 0; // or check pedido existence
+        // =========================================
+        // ✅ If NOT leader → redirect to leader
+        // =========================================
+        if (!state.isLeader()) {
+
+            String leaderUrl = state.getLeader();
+
+            URL url = new URL(leaderUrl + "/comprar");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+
+            byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
+            conn.getOutputStream().write(bodyBytes);
+
+            BufferedReader leaderResp = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream())
+            );
+
+            sucesso = Boolean.parseBoolean(leaderResp.readLine());
+
         } else {
-            ok = false;
+
+            // =====================================================
+            // ✅ LEADER LOGIC (calls /ofertar, builds plan, etc.)
+            // =====================================================
+            sucesso = state.processarCompraComoLider(pedidoId, produtos);
         }
 
-        byte[] response = String.valueOf(ok).getBytes();
+        byte[] response = String.valueOf(sucesso).getBytes(StandardCharsets.UTF_8);
+
         exchange.sendResponseHeaders(200, response.length);
         exchange.getResponseBody().write(response);
-        exchange.close();
+        exchange.getResponseBody().close();
     }
 }

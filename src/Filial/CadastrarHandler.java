@@ -1,11 +1,13 @@
 package Filial;
 
-import com.sun.net.httpserver.*;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class CadastrarHandler implements HttpHandler {
 
-    private FilialState state;
+    private final FilialState state;
 
     public CadastrarHandler(FilialState state) {
         this.state = state;
@@ -14,21 +16,24 @@ public class CadastrarHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
 
-        if (!state.isLeader()) {
-            exchange.sendResponseHeaders(403, 0);
-            exchange.close();
+        if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+            exchange.sendResponseHeaders(405, -1);
             return;
         }
-        
-        String restaurante = HttpUtils.readRequestBody(exchange.getRequestBody());
 
+        // ✅ Read body safely in Java 8
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8)
+        );
 
-        // ✅ HERE is where Paxos will be called in the future
+        String restaurante = br.readLine();  // just one line
+
         int pedidoId = state.cadastrarPedido(restaurante);
 
-        byte[] response = String.valueOf(pedidoId).getBytes();
+        byte[] response = String.valueOf(pedidoId).getBytes(StandardCharsets.UTF_8);
+
         exchange.sendResponseHeaders(200, response.length);
         exchange.getResponseBody().write(response);
-        exchange.close();
+        exchange.getResponseBody().close();
     }
 }

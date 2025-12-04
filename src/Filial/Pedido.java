@@ -1,11 +1,15 @@
 package Filial;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class Pedido {
     private int id;
     private String restaurante;
+    private Map<String, String> produtosPorFilial = new HashMap<>();
     private List<String> produtos;
     private int tempoEntrega;
 
@@ -16,6 +20,18 @@ public class Pedido {
         this.tempoEntrega = rand.nextInt(60);
     }
 
+    public void registrarAquisicao(String produto, String filial) {
+        produtosPorFilial.put(produto, filial);
+    }
+
+    public Map<String, String> getResultado() {
+        return produtosPorFilial;
+    }
+
+    public boolean concluido(String[] produtos) {
+        return produtosPorFilial.keySet().containsAll(Arrays.asList(produtos));
+    }
+    
     public int getId() {
         return id;
     }
