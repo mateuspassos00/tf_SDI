@@ -26,6 +26,7 @@ public class FilialServer {
         server.createContext("/cancelarReserva", new CancelarReservaHandler(state)); // ok
         server.createContext("/replicarPlano", new ReplicarPlanoHandler(state)); // ok
         server.createContext("/election", new ElectionHandler(state)); // ok
+        server.createContext("/finalPlans", new FinalPlansHandler(state));
 
         server.setExecutor(null);
         server.start();

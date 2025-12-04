@@ -17,6 +17,7 @@ public class EntregaHandler implements HttpHandler {
 
         URI uri = exchange.getRequestURI();
         String query = uri.getQuery(); // pedido=5
+        System.out.print(query);
         int pedidoId = Integer.parseInt(query.split("=")[1]);
 
         int tempo = state.tempoEntrega(pedidoId);

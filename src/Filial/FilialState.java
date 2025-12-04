@@ -140,6 +140,11 @@ public class FilialState {
         return finalPlans.get(orderId);
     }
 
+    public synchronized Map<Integer, Map<String, String>> getFinalPlans() {
+        return finalPlans;
+    }
+
+
     public synchronized String getLeader() { return leaderUrl; }
 
     public synchronized String getLeaderUrl() { return leaderUrl; }
