@@ -11,9 +11,9 @@ public class FilialState {
 
     // Filial identity
     private final String filialUrl;
-    private boolean isLeader = false;
-    private String currentLeader = null;
-
+    private volatile boolean isLeader = false;
+    private String leaderUrl = null;
+    private final int myPort;
 
     // Product -> Quantity
     private final Map<String, Integer> stock = new ConcurrentHashMap<>();
@@ -29,9 +29,10 @@ public class FilialState {
     // ==============================
     // ✅ CONSTRUCTOR
     // ==============================
-    public FilialState(String filialUrl, String csvPath) throws IOException {
+    public FilialState(String filialUrl, String csvPath, int myPort) throws IOException {
         this.filialUrl = filialUrl;
         loadStockFromCSV(csvPath);
+        this.myPort = myPort;
     }
 
     // ==============================
@@ -114,7 +115,7 @@ public class FilialState {
     // ===== leader control =====
     public synchronized boolean isLeader() { return isLeader; }
     public synchronized void setLeader(String leaderUrl) {
-        this.currentLeader = leaderUrl;
+        this.leaderUrl = leaderUrl;
         this.isLeader = leaderUrl != null && leaderUrl.equals(filialUrl);
         System.out.println("👑 leader set to " + leaderUrl + " (this=" + filialUrl + ")");
     }
@@ -133,7 +134,9 @@ public class FilialState {
         return finalPlans.get(orderId);
     }
 
-    public synchronized String getLeader() { return currentLeader; }
+    public synchronized String getLeader() { return leaderUrl; }
+
+    public synchronized String getLeaderUrl() { return leaderUrl; }
 
     // ============================================================
     // ✅ OPTIONAL DEBUG METHOD
@@ -141,4 +144,9 @@ public class FilialState {
     public synchronized Map<String, Integer> getStockSnapshot() {
         return new HashMap<>(stock);
     }
+
+    public int getMyPort() {
+        return myPort;
+    }
+
 }
